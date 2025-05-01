@@ -79,14 +79,13 @@ async function seed() {
       price: 24.99,
       rating: 4.9,
       releaseDate: new Date("2020-09-17"),
-
+    },
+    {
       title: "The Last of Us Part II",
-      description:
-        "An action-adventure game set in a post-apocalyptic world.",
+      description: "An action-adventure game set in a post-apocalyptic world.",
       price: 59.99,
       rating: 4.9,
       releaseDate: new Date("2020-06-19"),
-    },
     },
   ];
 
