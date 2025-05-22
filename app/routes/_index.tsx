@@ -8,7 +8,19 @@ import fallbackImage from "~/assets/svg/gamelog-logo.svg";
 export async function loader() {
   const prisma = new PrismaClient();
 
-  const games = await prisma.game.findMany();
+  const games = await prisma.game.findMany({
+    select: {
+      id: true,
+      title: true,
+      releaseDate: true,
+      imageUrl: true,
+      category: {
+        select: {
+          title: true,
+        },
+      },
+    },
+  });
 
   return json({ games });
 }
@@ -19,16 +31,14 @@ export default function Index() {
   return (
     <div className="container mx-auto px-8 grid grid-cols-3 gap-8">
       {games.map((game) => (
-        <div key={game.id}>
-          <GameCard
-            key={game.id}
-            id={game.id}
-            title={game.title}
-            releaseDate={game.releaseDate}
-            imageUrl={game.imageUrl || fallbackImage}
-            genre={"Unknown"}
-          />
-        </div>
+        <GameCard
+          key={game.id}
+          id={game.id}
+          title={game.title}
+          releaseDate={game.releaseDate}
+          imageUrl={game.imageUrl || fallbackImage}
+          genre={game.category?.title || "Unknown"}
+        />
       ))}
     </div>
   );
