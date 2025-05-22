@@ -10,6 +10,8 @@ async function seed() {
       price: 59.99,
       rating: 4.9,
       releaseDate: new Date("2017-03-03"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746702297/download_bgmczm.jpg",
     },
     {
       title: "The Witcher 3: Wild Hunt",
@@ -18,6 +20,8 @@ async function seed() {
       price: 39.99,
       rating: 4.8,
       releaseDate: new Date("2015-05-19"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700420/the_witcher_3_Wild_Hunt_vzmxkf.jpg",
     },
     {
       title: "Red Dead Redemption 2",
@@ -25,6 +29,8 @@ async function seed() {
       price: 59.99,
       rating: 4.7,
       releaseDate: new Date("2018-10-26"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700403/red_dead_2_eyhaep.jpg",
     },
     {
       title: "God of War",
@@ -32,6 +38,8 @@ async function seed() {
       price: 49.99,
       rating: 4.9,
       releaseDate: new Date("2018-04-20"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700238/god_of_war_orht4i.jpg",
     },
     {
       title: "Minecraft",
@@ -40,6 +48,8 @@ async function seed() {
       price: 26.95,
       rating: 4.8,
       releaseDate: new Date("2011-11-18"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700224/minecraft_fiyhcn.jpg",
     },
     {
       title: "Fortnite",
@@ -48,6 +58,8 @@ async function seed() {
       price: 0.0,
       rating: 4.5,
       releaseDate: new Date("2017-07-25"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700798/download_rxjiyo.jpg",
     },
     {
       title: "Cyberpunk 2077",
@@ -55,6 +67,8 @@ async function seed() {
       price: 59.99,
       rating: 4.0,
       releaseDate: new Date("2020-12-10"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700204/cyberpunk_2077_hh20bo.jpg",
     },
     {
       title: "Among Us",
@@ -63,6 +77,8 @@ async function seed() {
       price: 4.99,
       rating: 4.4,
       releaseDate: new Date("2018-06-15"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700186/among_us_w1z0kg.jpg",
     },
     {
       title: "Animal Crossing: New Horizons",
@@ -71,6 +87,8 @@ async function seed() {
       price: 59.99,
       rating: 4.9,
       releaseDate: new Date("2020-03-20"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700147/animal_crossing_new_horizons_xp5qo0.jpg",
     },
     {
       title: "Hades",
@@ -79,12 +97,96 @@ async function seed() {
       price: 24.99,
       rating: 4.9,
       releaseDate: new Date("2020-09-17"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700120/hades_lk29yf.jpg",
+    },
+    {
+      title: "The Last of Us Part II",
+      description: "An action-adventure game set in a post-apocalyptic world.",
+      price: 59.99,
+      rating: 4.9,
+      releaseDate: new Date("2020-06-19"),
+      imageUrl:
+        "https://res.cloudinary.com/dauoumn9b/image/upload/v1746700958/images_g9zipw.jpg",
     },
   ];
 
   for (const game of games) {
     await prisma.game.create({ data: game });
   }
+
+  console.log("👾 Games created successfully");
+
+  const categories = [
+    {
+      title: "Action",
+      description:
+        "Games that require quick reflexes and hand-eye coordination.",
+    },
+    {
+      title: "Adventure",
+      description: "Games that involve exploration and puzzle-solving.",
+    },
+    {
+      title: "RPG",
+      description: "Games that focus on character development and story.",
+    },
+    {
+      title: "Simulation",
+      description: "Games that simulate real-world activities or systems.",
+    },
+    {
+      title: "Strategy",
+      description: "Games that require strategic thinking and planning.",
+    },
+    {
+      title: "Puzzle",
+      description:
+        "Games that challenge players with logic and problem-solving.",
+    },
+    {
+      title: "Sports",
+      description: "Games that simulate sports or physical activities.",
+    },
+    {
+      title: "Multiplayer",
+      description: "Games that can be played with multiple players.",
+    },
+    {
+      title: "Indie",
+      description: "Games developed by independent studios or individuals.",
+    },
+    {
+      title: "Horror",
+      description: "Games that aim to scare or unsettle players.",
+    },
+  ];
+
+  for (const category of categories) {
+    await prisma.category.create({ data: category });
+  }
+
+  console.log("🎮 Categories created successfully");
+
+  console.log("🔗 Linking each game to a category");
+
+  // Fetch games from the database
+  const dbGames = await prisma.game.findMany();
+
+  // Fetch categories from the database
+  const dbCategories = await prisma.category.findMany();
+
+  // Link each game to a category
+  for (const game of dbGames) {
+    const category =
+      dbCategories[Math.floor(Math.random() * dbCategories.length)];
+    await prisma.game.update({
+      where: { id: game.id },
+      data: { categoryId: category.id },
+    });
+  }
+
+  console.log("🔗 Games and categories linked successfully");
 
   console.log("Seed data created successfully");
 }
