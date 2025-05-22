@@ -1,12 +1,23 @@
 import { useState } from "react";
 import { Form, Link, useLoaderData } from "@remix-run/react";
 import { json, redirect } from "@remix-run/node";
-import type { ActionFunctionArgs } from "@remix-run/node";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { PrismaClient } from "@prisma/client";
 import ImageUploader from "~/components/ImageUploader";
 
-export async function loader() {
+export async function loader({ params }: LoaderFunctionArgs) {
+  const gameId = params.gameId;
+
   const prisma = new PrismaClient();
+
+  const game = await prisma.game.findUnique({
+    where: { id: gameId },
+  });
+
+  if (!game) {
+    throw new Response("Game not found", { status: 404 });
+  }
+
   const categories = await prisma.category.findMany({
     select: { id: true, title: true },
     orderBy: { title: "asc" },
@@ -14,10 +25,11 @@ export async function loader() {
 
   prisma.$disconnect();
 
-  return json({ categories });
+  return json({ game, categories });
 }
 
-export async function action({ request }: ActionFunctionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
+  const gameId = params.gameId;
   const formData = await request.formData();
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
@@ -29,7 +41,8 @@ export async function action({ request }: ActionFunctionArgs) {
 
   const prisma = new PrismaClient();
 
-  await prisma.game.create({
+  await prisma.game.update({
+    where: { id: gameId },
     data: {
       title,
       description,
@@ -46,24 +59,28 @@ export async function action({ request }: ActionFunctionArgs) {
   return redirect("/");
 }
 
-export default function AddGame() {
-  const { categories } = useLoaderData<typeof loader>();
-  const [imageUrl, setImageUrl] = useState("");
+export default function EditGame() {
+  const { game, categories } = useLoaderData<typeof loader>();
+  const [imageUrl, setImageUrl] = useState(game.imageUrl || "");
 
   const handleImageUploaded = (url: string) => {
     setImageUrl(url);
   };
 
+  // Format the date to YYYY-MM-DD for the date input
+  const formattedDate = new Date(game.releaseDate).toISOString().split("T")[0];
+
   return (
     <div className="container mx-auto py-20 px-4">
       <h1 className="font-bold text-5xl text-center mb-10">
-        Add <span className="text-cyan-400">Game</span>
+        Edit <span className="text-cyan-400">Game</span>
       </h1>
 
       <div className="max-w-2xl mx-auto bg-gray-950 p-8 rounded-xl">
         <Form method="post" className="space-y-6">
           <input type="hidden" name="imageUrl" value={imageUrl} />
 
+          {/* Form fields with defaultValue set to current game data */}
           <div>
             <label
               htmlFor="title"
@@ -75,6 +92,7 @@ export default function AddGame() {
               type="text"
               id="title"
               name="title"
+              defaultValue={game.title}
               required
               className="w-full p-3 bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
             />
@@ -90,6 +108,7 @@ export default function AddGame() {
             <textarea
               id="description"
               name="description"
+              defaultValue={game.description}
               required
               rows={4}
               className="w-full p-3 bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
@@ -98,9 +117,17 @@ export default function AddGame() {
 
           <div className="mb-8">
             <ImageUploader onImageUploaded={handleImageUploaded} />
+            {imageUrl && (
+              <div className="mt-2">
+                <p className="text-sm text-slate-400">Current image:</p>
+                <img
+                  src={imageUrl}
+                  alt={game.title}
+                  className="mt-1 h-20 object-cover rounded-md"
+                />
+              </div>
+            )}
           </div>
-
-          {/* Additional form fields for price, rating, etc. */}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -114,6 +141,7 @@ export default function AddGame() {
                 type="number"
                 id="price"
                 name="price"
+                defaultValue={game.price}
                 step="0.01"
                 min="0"
                 required
@@ -132,6 +160,7 @@ export default function AddGame() {
                 type="number"
                 id="rating"
                 name="rating"
+                defaultValue={game.rating}
                 step="0.1"
                 min="0"
                 max="5"
@@ -152,6 +181,7 @@ export default function AddGame() {
               type="date"
               id="releaseDate"
               name="releaseDate"
+              defaultValue={formattedDate}
               required
               className="w-full p-3 bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
             />
@@ -167,6 +197,7 @@ export default function AddGame() {
             <select
               id="categoryId"
               name="categoryId"
+              defaultValue={game.categoryId || ""}
               required
               className="w-full p-3 bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
             >
@@ -182,15 +213,15 @@ export default function AddGame() {
           <div className="flex justify-end gap-16">
             <Link
               to="/"
-              className=" text-red-300 border-2 border-red-300 py-3 px-6 rounded-md hover:bg-red-50/10 transition duration-200"
+              className="text-red-300 border-2 border-red-300 py-3 px-6 rounded-md hover:bg-red-50/10 transition duration-200"
             >
               Cancel
             </Link>
             <button
               type="submit"
-              className=" bg-cyan-600 text-white py-3 px-6 rounded-md hover:bg-cyan-500 transition duration-200"
+              className="bg-cyan-600 text-white py-3 px-6 rounded-md hover:bg-cyan-500 transition duration-200"
             >
-              Add Game
+              Update Game
             </button>
           </div>
         </Form>

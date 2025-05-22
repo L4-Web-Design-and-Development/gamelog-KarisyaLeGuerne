@@ -4,7 +4,7 @@ import { useLoaderData } from "@remix-run/react";
 import type { MetaFunction } from "@remix-run/node";
 import GameCard from "~/components/GameCard";
 import gamelogFallback from "~/assets/svg/gamelog-logo.svg";
-
+import Hero from "~/components/Heroimage";
 // Importing GameCard component
 // import GameCard from "~/components/GameCard";
 
@@ -39,11 +39,13 @@ export default function Index() {
   const { games } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex items-center justify-center">
-      <div>
+    <div className="container px-8 mx-auto min-h-screen">
+      <Hero title={"Track Your Gaming Journey with Ease"} ctaText="Add Game" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {games.map((game) => (
           <GameCard
             key={game.id}
+            id={game.id}
             title={game.title}
             releaseDate={game.releaseDate}
             imageUrl={game.imageUrl || gamelogFallback}
